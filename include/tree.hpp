@@ -208,7 +208,7 @@ public:
     try {
       std::ofstream ofs(path.c_str());
       boost::archive::binary_oarchive oa(ofs);
-      oa << this;
+      oa << *this;
       ofs.flush();
       ofs.close();
       std::cout << "saved " << path << std::endl;

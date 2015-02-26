@@ -241,7 +241,7 @@ cv::Rect intersect(const cv::Rect r1, const cv::Rect r2) {
 
   // check for non-overlapping regions
   if ((intersection.width <= 0) || (intersection.height <= 0)) {
-    intersection = cvRect(0, 0, 0, 0);
+    intersection = cv::Rect(0, 0, 0, 0);
   }
   return intersection;
 }

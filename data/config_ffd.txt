@@ -4,7 +4,7 @@ ____Path to folders containing the trees
 data/trees_ffd/
 ____Number of trees
 10
-____Number of testscd
+____Number of tests
 100
 ____Max depth
 20

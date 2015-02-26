@@ -78,7 +78,7 @@ void ImageSample::extractFeatureChannels(const Mat& img,
   if (img.channels() == 1) {
     img_gray = img;
   } else {
-    cv::cvtColor(img, img_gray, CV_RGB2GRAY);
+    cv::cvtColor(img, img_gray, cv::COLOR_RGB2GRAY);
   }
 
   sort(features.begin(), features.end());

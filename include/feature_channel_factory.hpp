@@ -79,7 +79,7 @@ public:
           cv::pow(i_mat, 2, i_mat);
           cv::add(i_mat, r_mat, final);
           cv::pow(final, 0.5, final);
-          cv::normalize(final, final, 0, 1, CV_MINMAX, CV_32F);
+          cv::normalize(final, final, 0, 1, cv::NORM_MINMAX, CV_32F);
 
           if (useIntegral) {
             cv::Mat img;
@@ -159,7 +159,7 @@ private:
     cv::pow(i_mat, 2, i_mat);
     cv::add(i_mat, r_mat, final);
     cv::pow(final, 0.5, final);
-    cv::normalize(final, final, 0, 1, CV_MINMAX);
+    cv::normalize(final, final, 0, 1, cv::NORM_MINMAX);
 
     if (useIntegral) {
       cv::Mat img;

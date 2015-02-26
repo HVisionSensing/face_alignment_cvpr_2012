@@ -1,10 +1,10 @@
 ____Path to images index file
- 
+data/index_random_subset.txt
 ____Path to trees
 data/trees_headpose/tree_
 ____Number of trees
 10
-____Number of testscd
+____Number of tests
 500
 ____Max depth
 15

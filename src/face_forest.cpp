@@ -19,8 +19,8 @@ using namespace boost::filesystem;
 void FaceForest::detect_face(const cv::Mat& img,
     CascadeClassifier& face_cascade, FaceDetectionOption option, vector<
         cv::Rect>& faces) {
-  int flags = CV_HAAR_SCALE_IMAGE;
-  CvSize minFeatureSize = cvSize(option.min_feature_size,
+  int flags = 0; // CV_HAAR_SCALE_IMAGE;
+  cv::Size minFeatureSize = cv::Size(option.min_feature_size,
       option.min_feature_size);
 
   //-- Detect faces

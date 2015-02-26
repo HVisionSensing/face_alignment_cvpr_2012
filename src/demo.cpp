@@ -52,7 +52,7 @@ void train_forest( ForestParam param,
 
 		//convert image to grayscale
 		Mat img_gray;
-		cvtColor( image, img_gray, CV_BGR2GRAY );
+		cvtColor( image, img_gray, cv::COLOR_BGR2GRAY );
 
 		//rescale image to a common size
 		cv::Mat img_rescaled;
@@ -111,7 +111,7 @@ void eval_forest( FaceForestOptions option,
 
 		// convert to grayscale
 		Mat img_gray;
-    cvtColor( image, img_gray, CV_BGR2GRAY );
+    cvtColor( image, img_gray, cv::COLOR_BGR2GRAY );
 
     bool use_predefined_bbox = true;
     vector<Face> faces;
@@ -159,7 +159,7 @@ int main(int argc, char** argv)
 
 	// parse config file
 	ForestParam mp_param;
-	assert(loadConfigFile(ffd_config_file, mp_param));
+	CV_Assert(loadConfigFile(ffd_config_file, mp_param));
 
 	// loading GT
 	vector<FaceAnnotation> annotations;
@@ -175,7 +175,7 @@ int main(int argc, char** argv)
 		option.face_detection_option.path_face_cascade = face_cascade;
 
 		ForestParam head_param;
-		assert(loadConfigFile(headpose_config_file, head_param));
+		CV_Assert(loadConfigFile(headpose_config_file, head_param));
 		option.head_pose_forest_param = head_param;
 		option.mp_forest_param = mp_param;
 
