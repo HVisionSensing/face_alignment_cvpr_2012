@@ -1,5 +1,5 @@
-Author: Roberto Valle Fernández
-Software developed by UPM PCR Group: http://www.dia.fi.upm.es/~pcr
+##### Author: Roberto Valle Fernández
+##### Software developed by UPM PCR Group: http://www.dia.fi.upm.es/~pcr
 
 ### Abstract
 The provided project is my own version of Matthias Dantone et al. code based on the CVPR 2012 paper:

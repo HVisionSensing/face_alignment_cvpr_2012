@@ -27,6 +27,7 @@ INCLUDE_DIRECTORIES(
 
 #-- Executable
 ADD_EXECUTABLE(test_cvpr_2012
+    ${CMAKE_SOURCE_DIR}/include/trace.hpp
     ${CMAKE_SOURCE_DIR}/include/forest.hpp
     ${CMAKE_SOURCE_DIR}/include/mean_shift.hpp
     ${CMAKE_SOURCE_DIR}/include/opencv_serialization.hpp
@@ -47,7 +48,8 @@ ADD_EXECUTABLE(test_cvpr_2012
     ${CMAKE_SOURCE_DIR}/include/face_utils.hpp
     ${CMAKE_SOURCE_DIR}/src/face_utils.cpp
     
-    ${CMAKE_SOURCE_DIR}/src/demo.cpp
+    ${CMAKE_SOURCE_DIR}/src/test_cvpr_2012.cpp
+    #${CMAKE_SOURCE_DIR}/src/demo.cpp
     #${CMAKE_SOURCE_DIR}/src/eval_ffd.cpp
     #${CMAKE_SOURCE_DIR}/src/train_ffd.cpp
     #${CMAKE_SOURCE_DIR}/src/train_headpose.cpp
