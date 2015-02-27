@@ -8,6 +8,7 @@
 #ifndef CONDITIONAL_RF_HPP_
 #define CONDITIONAL_RF_HPP_
 
+#include <Viewer.hpp>
 #include "forest.hpp"
 #include "opencv2/core/core.hpp"
 #include "opencv2/objdetect/objdetect.hpp"
@@ -61,8 +62,7 @@ public:
       const cv::Rect face_bbox, const Forest<MPSample>& forest,
       MultiPartEstimatorOption option, std::vector<cv::Point>& ffd_cordinates);
 
-  static void show_results(const cv::Mat img, std::vector<Face>& faces,
-      int wait_key = 0);
+  static void show_results(const cv::Mat img, std::vector<Face>& faces, upm::Viewer &viewer);
 
   FaceForest() :
     trees(0), num_trees(0), is_inizialized(false) {

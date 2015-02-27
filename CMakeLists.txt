@@ -47,6 +47,8 @@ ADD_EXECUTABLE(test_cvpr_2012
     ${CMAKE_SOURCE_DIR}/src/image_sample.cpp
     ${CMAKE_SOURCE_DIR}/include/face_utils.hpp
     ${CMAKE_SOURCE_DIR}/src/face_utils.cpp
+    ${CMAKE_SOURCE_DIR}/include/Viewer.hpp
+    ${CMAKE_SOURCE_DIR}/src/Viewer.cpp
     
     ${CMAKE_SOURCE_DIR}/src/test_cvpr_2012.cpp
     #${CMAKE_SOURCE_DIR}/src/demo.cpp

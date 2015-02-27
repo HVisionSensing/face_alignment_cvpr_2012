@@ -19,7 +19,7 @@ using namespace boost::filesystem;
 void FaceForest::detect_face(const cv::Mat& img,
     CascadeClassifier& face_cascade, FaceDetectionOption option, vector<
         cv::Rect>& faces) {
-  int flags = 0; // CV_HAAR_SCALE_IMAGE;
+  int flags = 0; //CV_HAAR_SCALE_IMAGE;
   cv::Size minFeatureSize = cv::Size(option.min_feature_size,
       option.min_feature_size);
 
@@ -103,8 +103,7 @@ void FaceForest::estimate_ffd(const ImageSample& image_sample,
 
 }
 
-void FaceForest::show_results(const cv::Mat img, std::vector<Face>& faces,
-    int wait_key) {
+void FaceForest::show_results(const cv::Mat img, std::vector<Face>& faces, upm::Viewer &viewer) {
   cv::Mat image = img.clone();
 
   for (unsigned int j = 0; j < faces.size(); j++) {
@@ -138,8 +137,9 @@ void FaceForest::show_results(const cv::Mat img, std::vector<Face>& faces,
     cv::line(image, c, d, color, 2);
 
   }
-  cv::imshow("Face", image);
-  cv::waitKey(wait_key);
+  viewer.image(image, 0, 0, image.cols, image.rows);
+  //cv::imshow("Face", image);
+  //cv::waitKey(wait_key);
 }
 
 // END STATIC FUNCTIONS
@@ -148,7 +148,7 @@ FaceForest::FaceForest(FaceForestOptions option) :
   option_(option) {
 
   //loading face cascade
-  assert(load_face_cascade(option.face_detection_option.path_face_cascade));
+  CV_Assert(load_face_cascade(option.face_detection_option.path_face_cascade));
 
   //loading head pose forest
   con_forest.load(option.head_pose_forest_param.treePath,
@@ -165,7 +165,7 @@ FaceForest::FaceForest(FaceForestOptions option) :
 };
 
 void FaceForest::analize_image(cv::Mat img, vector<Face>& faces) {
-  assert( is_inizialized);
+  CV_Assert( is_inizialized);
 
   //detect the face
   vector < Rect > faces_bboxes;
@@ -182,8 +182,8 @@ void FaceForest::analize_image(cv::Mat img, vector<Face>& faces) {
 
 void FaceForest::analize_face(const cv::Mat img, cv::Rect face_bbox,
     Face& result_face, bool normalize) {
-  assert( is_inizialized);
-  assert(img.type() == CV_8UC1);
+  CV_Assert( is_inizialized);
+  CV_Assert(img.type() == CV_8UC1);
   result_face.bbox = face_bbox;
 
   ForestParam param = option_.head_pose_forest_param;
@@ -235,8 +235,8 @@ void FaceForest::analize_face(const cv::Mat img, cv::Rect face_bbox,
   timer.restart();
 
   //add new tree based on the estimated heas_pose
-  assert(trees.size() == pose_freq.size());
-  assert(static_cast<int> (trees.size()) == hist_size);
+  CV_Assert(trees.size() == pose_freq.size());
+  CV_Assert(static_cast<int> (trees.size()) == hist_size);
 
   forest.trees.clear();
 
