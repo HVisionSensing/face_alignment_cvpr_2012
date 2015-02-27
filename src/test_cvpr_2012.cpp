@@ -65,7 +65,8 @@ showResults
   FaceForest &ff,
   std::vector<Face> &faces,
   upm::Viewer &viewer,
-  double ticks
+  double ticks,
+  int delay
   )
 {
   std::ostringstream outs;
@@ -78,7 +79,7 @@ showResults
   viewer.image(frame, 0, 0, frame.cols, frame.rows);
   ff.show_results(frame, faces, viewer);
   viewer.text(outs.str(), 20, frame.rows-20, cv::Scalar(255,0,255), 0.5);
-  viewer.endDrawing(1);
+  viewer.endDrawing(delay);
 };
 
 // -----------------------------------------------------------------------------
@@ -98,12 +99,18 @@ main
   )
 {
   // ---------------------------------------------------------------------------
-  // Determine if we get the images from a camera, a video, or a set of images
+  // Determine if we get the images from a camera or a video
   // ---------------------------------------------------------------------------
   cv::Mat frame;
   cv::VideoCapture capture;
   bool process_image_file    = false;
   bool process_video_capture = false;
+
+  if (argc == 1)
+  {
+    ERROR("Usage: image | video input file required");
+    return EXIT_FAILURE;
+  }
 
   boost::filesystem::path dir(argv[1]);
   if (boost::filesystem::exists(dir) && (boost::filesystem::is_regular_file(dir)))
@@ -159,10 +166,9 @@ main
   {
     std::vector<Face> faces;
     double ticks = processFrame(frame, ff, faces);
-    showResults(frame, ff, faces, viewer, ticks);
+    showResults(frame, ff, faces, viewer, ticks, 0);
   }
-
-  if (process_video_capture)
+  else
   {
     for (;;)
     {
@@ -176,7 +182,7 @@ main
 
       std::vector<Face> faces;
       double ticks = processFrame(frame, ff, faces);
-      showResults(frame, ff, faces, viewer, ticks);
+      showResults(frame, ff, faces, viewer, ticks, 1);
     }
   }
 

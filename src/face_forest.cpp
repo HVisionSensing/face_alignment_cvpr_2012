@@ -111,7 +111,7 @@ void FaceForest::show_results(const cv::Mat img, std::vector<Face>& faces, upm::
       int x = faces[j].ffd_cordinates[ii].x + faces[j].bbox.x;
       int y = faces[j].ffd_cordinates[ii].y + faces[j].bbox.y;
 
-      cv::circle(image, cv::Point(x, y), 3, cv::Scalar(0, 255, 0, 0), -1);
+      viewer.circle(x, y, 3, -1, cv::Scalar(0,255,0));
     }
     cv::Rect bbox = faces[j].bbox;
     cv::Point_<int> a(bbox.x, bbox.y);
@@ -128,18 +128,13 @@ void FaceForest::show_results(const cv::Mat img, std::vector<Face>& faces, upm::
       y1.x -= yaw;
     }
     cv::Scalar color(0, 0, 255);
-    cv::line(image, a, y1, color, 2);
-    cv::line(image, y1, c, color, 2);
-    cv::line(image, b, y2, color, 2);
-    cv::line(image, y2, d, color, 2);
-
-    cv::line(image, a, b, color, 2);
-    cv::line(image, c, d, color, 2);
-
+    viewer.line(a.x, a.y, y1.x, y1.y, 2, color);
+    viewer.line(y1.x, y1.y, c.x, c.y, 2, color);
+    viewer.line(b.x, b.y, y2.x, y2.y, 2, color);
+    viewer.line(y2.x, y2.y, d.x, d.y, 2, color);
+    viewer.line(a.x, a.y, b.x, b.y, 2, color);
+    viewer.line(c.x, c.y, d.x, d.y, 2, color);
   }
-  viewer.image(image, 0, 0, image.cols, image.rows);
-  //cv::imshow("Face", image);
-  //cv::waitKey(wait_key);
 }
 
 // END STATIC FUNCTIONS

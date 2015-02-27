@@ -142,13 +142,13 @@ Viewer::beginDrawing
 void 
 Viewer::endDrawing
   (
-  time_t time
+  int delay
   )
 {
   if (m_initialised && m_drawing)
   {
     cv::imshow(m_window_title.c_str(), m_canvas);
-    cv::waitKey(time);
+    cv::waitKey(delay);
 
     m_drawing = false;
   }
@@ -245,6 +245,31 @@ Viewer::line
 // Purpose and Method:
 // Inputs: 
 // Outputs: 
+// Dependencies:
+// Restrictions and Caveats:
+//
+// -----------------------------------------------------------------------------
+void
+Viewer::circle
+  (
+  int x_center,
+  int y_center,
+  int radius,
+  int line_width,
+  cv::Scalar color
+  )
+{
+  if (!m_initialised || !m_drawing)
+    return;
+
+  cv::circle(m_canvas, cv::Point(x_center,y_center), radius, color, line_width);
+};
+
+// -----------------------------------------------------------------------------
+//
+// Purpose and Method:
+// Inputs:
+// Outputs:
 // Dependencies:
 // Restrictions and Caveats:
 //

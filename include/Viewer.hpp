@@ -67,12 +67,12 @@ public:
    *  @brief All the drawing commands should be between "beginDrawing" and
    *  "endDrawing". Only after "endDrawing" the drawing commands result is
    *  displayed over the window canvas
-   *  @param time Delay in milliseconds. 0 is the value that means “forever”
+   *  @param delay Time in milliseconds. 0 is the value that means “forever”
    */
   virtual void
   endDrawing
     (
-    time_t time = 0
+    int delay = 0
     );
 
   /** 
@@ -133,6 +133,24 @@ public:
     int y1, 
     int x2, 
     int y2, 
+    int line_width,
+    cv::Scalar color
+    );
+
+  /**
+   * @brief Draw a general circle on the viewer
+   * @param x_center   Horizontal pixel coordinate of the ellipse center
+   * @param y_center   Vertical pixel coordinate of the ellipse center
+   * @param radius     Radius of the circle
+   * @param line_width Type of the circle boundary
+   * @param color      Circle color
+   */
+  virtual void
+  circle
+    (
+    int x_center,
+    int y_center,
+    int radius,
     int line_width,
     cv::Scalar color
     );
