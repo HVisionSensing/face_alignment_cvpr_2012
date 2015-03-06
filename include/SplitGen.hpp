@@ -1,49 +1,104 @@
-/*
- * SplitGen.h
- *
- *  Created on: Aug 10, 2011
- *      Author: Matthias Dantone
- */
+/** ****************************************************************************
+ *  @file    SplitGen.hpp
+ *  @brief   Real-time facial feature detection
+ *  @author  Matthias Dantone
+ *  @date    2011/08
+ ******************************************************************************/
 
-#ifndef SPLITGEN_H_
-#define SPLITGEN_H_
+// ------------------ RECURSION PROTECTION -------------------------------------
+#ifndef SPLIT_GEN_HPP
+#define SPLIT_GEN_HPP
 
-#include <vector>
-#include <boost/numeric/conversion/bounds.hpp>
-#include <boost/limits.hpp>
-#include <boost/random.hpp>
-#include "timing.hpp"
-#include <algorithm>
+// ----------------------- INCLUDES --------------------------------------------
+#include <ThreadPool.hpp>
 #include <boost/thread.hpp>
-#include "thread_pool.hpp"
+#include <boost/serialization/access.hpp>
+#include <boost/serialization/vector.hpp>
+#include <boost/serialization/string.hpp>
+#include <boost/numeric/conversion/bounds.hpp>
+#include <boost/random/mersenne_twister.hpp>
+#include <boost/random/uniform_int.hpp>
+#include <boost/random/variate_generator.hpp>
 
-typedef std::pair<int, unsigned int> IntIndex;
-struct less_than {
-  bool operator()(const IntIndex& a, const IntIndex& b) const {
-    return a.first < b.first;
-  }
-  bool operator()(const IntIndex& a, const int& b) const {
-    return a.first < b;
+struct ForestParam
+{
+  int max_d;
+  int min_s;
+  int nTests;
+  int nTrees;
+  int nSamplesPerTree;
+  int nPatchesPerSample;
+  int faceSize;
+  int measuremode;
+  int nFeatureChannels;
+  float patchSizeRatio;
+  std::string treePath;
+  std::string imgPath;
+  std::string featurePath;
+  std::vector<int> features;
+
+  friend class boost::serialization::access;
+  template<class Archive>
+  void serialize(Archive &ar, const unsigned int version)
+  {
+    ar & max_d;
+    ar & min_s;
+    ar & nTests;
+    ar & nTrees;
+    ar & nSamplesPerTree;
+    ar & nPatchesPerSample;
+    ar & faceSize;
+    ar & measuremode;
+    ar & nFeatureChannels;
+    ar & patchSizeRatio;
+    ar & treePath;
+    ar & imgPath;
+    ar & featurePath;
+    ar & features;
   }
 };
 
-template<typename Sample>
-class SplitGen {
+typedef std::pair<int, unsigned int> IntIndex;
 
+struct less_than
+{
+  bool operator()(const IntIndex &a, const IntIndex &b) const
+  {
+    return a.first < b.first;
+  };
+
+  bool operator()(const IntIndex &a, const int &b) const {
+    return a.first < b;
+  };
+};
+
+/** ****************************************************************************
+ * @class SplitGen
+ * @brief Conditional regression split generator
+ ******************************************************************************/
+template<typename Sample>
+class SplitGen
+{
 public:
   typedef typename Sample::Split Split;
 
-  SplitGen(const std::vector<Sample*>& data_, std::vector<Split>& splits_,
-      boost::mt19937* rng_, ForestParam fp_,
-      std::vector<float>& weightClasses_, int depth_, float split_mode_) :
-      data(data_), splits(splits_), rng(rng_), fp(fp_), weightClasses(weightClasses_), depth(depth_), split_mode(split_mode_) {
+  SplitGen
+    (
+    const std::vector<Sample*> &data_,
+    std::vector<Split>& splits_,
+    boost::mt19937* rng_,
+    ForestParam fp_,
+    std::vector<float>& weightClasses_,
+    int depth_,
+    float split_mode_
+    ) :
+      data(data_), splits(splits_), rng(rng_), fp(fp_), weightClasses(weightClasses_),
+      depth(depth_), split_mode(split_mode_) {};
 
-  };
+  virtual
+  ~SplitGen() {};
 
-  virtual ~SplitGen() {
-  };
-
-  void generate_mt(int stripe) {
+  /*void generate_mt(int stripe) {
     boost::mt19937 rng_thread(abs(stripe + 1) * std::time(NULL));
 
     if (Sample::generateSplit(data, &rng_thread, fp, splits[stripe], split_mode, depth)) {
@@ -65,7 +120,7 @@ public:
 
   void generate() {
     int num_treads = boost::thread::hardware_concurrency();
-    boost::thread_pool::executor e(num_treads);
+    boost::thread_pool::ThreadPool e(num_treads);
     for (int stripe = 0; stripe < static_cast<int>(splits.size()); stripe++) {
       e.submit(boost::bind(&SplitGen::generate_mt, this, stripe));
     }
@@ -159,12 +214,10 @@ public:
       assert( (sets[0].size() + sets[1].size() + sets[2].size()) == data.size());
 
     }
-
-  };
+  };*/
 
 private:
-
-  void findThreshold(const std::vector<Sample*>& data,
+  /*void findThreshold(const std::vector<Sample*>& data,
       const std::vector<IntIndex>& valSet,
       Split& split, boost::mt19937* rng_) const {
     split.gain = boost::numeric::bounds<double>::lowest();
@@ -216,15 +269,15 @@ private:
         }
       }
     }
-  }
+  };*/
 
-  const std::vector<Sample*>& data;
-  std::vector<Split>& splits;
-  boost::mt19937* rng;
+  const std::vector<Sample*> &data;
+  std::vector<Split> &splits;
+  boost::mt19937 *rng;
   ForestParam fp;
-  const std::vector<float>& weightClasses;
+  const std::vector<float> &weightClasses;
   float depth;
   float split_mode;
 };
 
-#endif /* SPLITGEN_H_ */
+#endif /* SPLIT_GEN_HPP */

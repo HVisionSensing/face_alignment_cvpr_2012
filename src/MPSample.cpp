@@ -1,41 +1,49 @@
-/*
- * FFDSample.cpp
- *
- *  Created on: May 5, 2011
- *      Author: Matthias Dantone
- */
+/** ****************************************************************************
+ *  @file    MPSample.cpp
+ *  @brief   Real-time facial feature detection
+ *  @author  Matthias Dantone
+ *  @date    2011/09
+ ******************************************************************************/
 
-#include "multi_part_sample.hpp"
+// ----------------------- INCLUDES --------------------------------------------
+#include <MPSample.hpp>
 #include <boost/numeric/conversion/bounds.hpp>
-#include <stdio.h>
-#include <math.h>
-#include <iostream>
-using namespace cv;
-using namespace std;
 
-MPSample::MPSample(const ImageSample* image_, cv::Rect rect_,
-    const cv::Rect roi_, const std::vector<cv::Point> ann_parts, float size_,
-    bool label, float lamda) :
-    image(image_), rect(rect_), roi(roi_), size(size_) {
+MPSample::MPSample
+  (
+  const ImageSample *image_,
+  cv::Rect rect_,
+  const cv::Rect roi_,
+  const std::vector<cv::Point> ann_parts,
+  float size_,
+  bool label,
+  float lamda
+  ) :
+    image(image_), rect(rect_), roi(roi_), size(size_)
+{
   int offx = rect.width / 2;
   int offy = rect.height / 2;
 
-  Point center_patch(rect.x + offx, rect.y + offy);
-  Point center_bbox(roi.x + roi.width / 2, roi.y + roi.height / 2);
+  cv::Point center_patch(rect.x + offx, rect.y + offy);
+  cv::Point center_bbox(roi.x + roi.width / 2, roi.y + roi.height / 2);
 
   num_parts = ann_parts.size();
-  dist = Mat(1, num_parts, CV_32FC1, Scalar::all(0.0));
+  dist = cv::Mat(1, num_parts, CV_32FC1, cv::Scalar::all(0.0));
   part_offsets.resize(num_parts);
   isPos = false;
-  for (int i = 0; i < num_parts; i++) {
+  for (int i=0; i < num_parts; i++)
+  {
     part_offsets[i].x = (ann_parts[i].x - center_patch.x);
     part_offsets[i].y = (ann_parts[i].y - center_patch.y);
 
     cv::Point_<float> offset = cv::Point_<float>(part_offsets[i].x / size, part_offsets[i].y / size);
     float norm = cv::norm(offset);
-    if (norm == 0) {
+    if (norm == 0)
+    {
       dist.at<float>(0, i) = 1;
-    } else {
+    }
+    else
+    {
       dist.at<float>(0, i) = 1 / exp(norm / lamda);
 
       if (dist.at<float>(0, i) > 0.09)
@@ -45,71 +53,101 @@ MPSample::MPSample(const ImageSample* image_, cv::Rect rect_,
 
   patch_offset.x = (center_bbox.x - center_patch.x);
   patch_offset.y = (center_bbox.y - center_patch.y);
-}
+};
 
-MPSample::MPSample(const ImageSample* patch_, cv::Rect rect_, int n_points, float size_) :
-    image(patch_), rect(rect_), size(size_) {
-
+MPSample::MPSample
+  (
+  const ImageSample *patch_,
+  cv::Rect rect_,
+  int n_points,
+  float size_
+  ) :
+    image(patch_), rect(rect_), size(size_)
+{
   num_parts = n_points;
-  dist = Mat(1, n_points, CV_32FC1, Scalar::all(0.0));
+  dist = cv::Mat(1, n_points, CV_32FC1, cv::Scalar::all(0.0));
 
   isPos = false;
-  for (int i = 0; i < n_points; i++) {
+  for (int i=0; i < n_points; i++)
+  {
     patch_offset.x = 0;
     patch_offset.y = 0;
     dist.at<float>(0, i) = 0;
-
   }
 
   //compute distance to face center
   distToCenter = 0;
+};
 
-}
+MPSample::MPSample
+  (
+  const ImageSample *patch_,
+  cv::Rect rect_
+  ) :
+    image(patch_), rect(rect_) {};
 
-MPSample::MPSample(const ImageSample* patch_, cv::Rect rect_) :
-    image(patch_), rect(rect_) {
-}
-
-int MPSample::evalTest(const Split& test) const {
+int
+MPSample::evalTest
+  (
+  const Split &test
+  ) const
+{
   return image->evalTest(test.feature, rect);
-}
+};
 
-bool MPSample::eval(const Split& test) const {
+bool
+MPSample::eval
+  (
+  const Split &test
+  ) const
+{
   return evalTest(test) <= test.threshold;
-}
+};
 
-double MPSample::evalSplit(const std::vector<MPSample*>& setA,
-    const std::vector<MPSample*>& setB, const std::vector<float>& poppClasses,
-    float splitMode, int depth) {
-
+double
+MPSample::evalSplit
+  (
+  const std::vector<MPSample*> &setA,
+  const std::vector<MPSample*> &setB,
+  const std::vector<float> &poppClasses,
+  float splitMode,
+  int depth
+  )
+{
   int mode = int(splitMode) / 50;
-  if (splitMode < 50 or depth < 2) {
+  if (splitMode < 50 or depth < 2)
     mode = 0;
-  } else {
+  else
     mode = 1;
-  }
 
   mode = 1;
   int size = setA.size() + setB.size();
-  if (mode == 0) {
+  if (mode == 0)
+  {
     double ent_a = entropie(setA);
     double ent_b = entropie(setB);
     return (ent_a * setA.size() + ent_b * setB.size()) / static_cast<double>(size);
-  } else {
+  }
+  else
+  {
     double ent_a = entropie_parts(setA);
     double ent_b = entropie_parts(setB);
     return (ent_a * setA.size() + ent_b * setB.size()) / static_cast<double>(size);
   }
+};
 
-}
-
-double MPSample::entropie_parts(const std::vector<MPSample*>& set) {
+double
+MPSample::entropie_parts
+  (
+  const std::vector<MPSample*> &set
+  )
+{
   double n_entropy = 0;
   double num_parts = set[0]->num_parts;
   cv::Mat sum = set[0]->dist.clone();
-  sum.setTo(Scalar::all(0.0));
+  sum.setTo(cv::Scalar::all(0.0));
 
-  vector<MPSample*>::const_iterator itSample;
+  std::vector<MPSample*>::const_iterator itSample;
   for (itSample = set.begin(); itSample < set.end(); itSample++)
     add(sum, (*itSample)->dist, sum);
 
@@ -121,12 +159,16 @@ double MPSample::entropie_parts(const std::vector<MPSample*>& set) {
       n_entropy += p * log(p);
   }
   return n_entropy;
+};
 
-}
-
-double MPSample::entropie(const std::vector<MPSample*>& set) {
+double
+MPSample::entropie
+  (
+  const std::vector<MPSample*> &set
+  )
+{
   double n_entropy = 0;
-  vector<MPSample*>::const_iterator itSample;
+  std::vector<MPSample*>::const_iterator itSample;
   int p = 0;
   for (itSample = set.begin(); itSample < set.end(); ++itSample)
     if ((*itSample)->isPos)
@@ -141,10 +183,19 @@ double MPSample::entropie(const std::vector<MPSample*>& set) {
     n_entropy += p_neg * log(p_neg);
 
   return n_entropy;
-}
+};
 
-bool MPSample::generateSplit(const std::vector<MPSample*>& data, boost::mt19937* rng, ForestParam fp, Split& split, float split_mode,
-    int depth) {
+bool
+MPSample::generateSplit
+  (
+  const std::vector<MPSample*> &data,
+  boost::mt19937 *rng,
+  ForestParam fp,
+  Split &split,
+  float split_mode,
+  int depth
+  )
+{
   int patchSize = fp.faceSize * fp.patchSizeRatio;
   int num_feat_channels = data[0]->image->featureChannels.size();
   split.feature.generate(patchSize, rng, num_feat_channels);
@@ -153,16 +204,27 @@ bool MPSample::generateSplit(const std::vector<MPSample*>& data, boost::mt19937*
   split.margin = 0;
 
   return true;
-}
+};
 
-void MPSample::makeLeaf(MPLeaf& leaf, const std::vector<MPSample*>& set, const std::vector<float>& poppClasses, int leaf_id) {
+void
+MPSample::makeLeaf
+  (
+  MPLeaf &leaf,
+  const std::vector<MPSample*> &set,
+  const std::vector<float> &poppClasses,
+  int leaf_id
+  )
+{
   int num_parts;
-  if (set.size() > 0) {
+  if (set.size() > 0)
+  {
     num_parts = set[0]->part_offsets.size();
-  } else {
+  }
+  else
+  {
     leaf.forgound = 0;
     num_parts = 0;
-    cout << "something is wrong " << endl;
+    PRINT("something is wrong");
   }
 
   int nElements = set.size();
@@ -173,8 +235,9 @@ void MPSample::makeLeaf(MPLeaf& leaf, const std::vector<MPSample*>& set, const s
   leaf.pF.resize(num_parts);
   leaf.nSamples = nElements;
 
-  for (int j = 0; j < num_parts; j++) {
-    leaf.parts_offset[j] = Point(0, 0);
+  for (int j = 0; j < num_parts; j++)
+  {
+    leaf.parts_offset[j] = cv::Point(0, 0);
     leaf.variance[j] = boost::numeric::bounds<float>::highest();
     leaf.pF[j] = 0;
   }
@@ -183,19 +246,23 @@ void MPSample::makeLeaf(MPLeaf& leaf, const std::vector<MPSample*>& set, const s
 
   std::vector<MPSample*>::const_iterator itSample;
   int size = 0;
-  for (itSample = set.begin(); itSample < set.end(); ++itSample) {
+  for (itSample = set.begin(); itSample < set.end(); ++itSample)
+  {
     if ((*itSample)->isPos)
       size++;
   }
 
-  if (size > 0) {
-    for (int j = 0; j < num_parts; j++) {
-
+  if (size > 0)
+  {
+    for (int j = 0; j < num_parts; j++)
+    {
       cv::Point_<int> mean(0.0, 0.0);
       float sumDist = 0;
 
-      for (itSample = set.begin(); itSample < set.end(); ++itSample) {
-        if ((*itSample)->isPos) {
+      for (itSample = set.begin(); itSample < set.end(); ++itSample)
+      {
+        if ((*itSample)->isPos)
+        {
           sumDist += (*itSample)->dist.at<float>(0, j);
           mean += (*itSample)->part_offsets[j];
         }
@@ -207,8 +274,10 @@ void MPSample::makeLeaf(MPLeaf& leaf, const std::vector<MPSample*>& set, const s
       leaf.parts_offset[j] = mean;
 
       double var = 0.0;
-      for (itSample = set.begin(); itSample < set.end(); ++itSample) {
-        if ((*itSample)->isPos) {
+      for (itSample = set.begin(); itSample < set.end(); ++itSample)
+      {
+        if ((*itSample)->isPos)
+        {
           int x = (*itSample)->part_offsets[j].x;
           int y = (*itSample)->part_offsets[j].y;
           float dist = sqrt((x - mean.x) * (x - mean.x) + (y - mean.y) * (y - mean.y));
@@ -242,8 +311,10 @@ void MPSample::makeLeaf(MPLeaf& leaf, const std::vector<MPSample*>& set, const s
 
     }
     leaf.patch_offset = cv::Point(0, 0);
-    for (itSample = set.begin(); itSample < set.end(); ++itSample) {
-      if ((*itSample)->isPos) {
+    for (itSample = set.begin(); itSample < set.end(); ++itSample)
+    {
+      if ((*itSample)->isPos)
+      {
         leaf.patch_offset += (*itSample)->patch_offset;
       }
     }
@@ -251,23 +322,28 @@ void MPSample::makeLeaf(MPLeaf& leaf, const std::vector<MPSample*>& set, const s
     leaf.patch_offset.y /= static_cast<int>(size);
 
     leaf.forgound = size / static_cast<float>(set.size());
-
   }
-}
+};
 
-//not needed for this task
-void MPSample::calcWeightClasses(std::vector<float>& poppClasses, const std::vector<MPSample*>& set) {
+// Not needed for this task
+void
+MPSample::calcWeightClasses
+  (
+  std::vector<float> &poppClasses,
+  const std::vector<MPSample*> &set
+  )
+{
   poppClasses.resize(1);
   int size = 0;
   std::vector<MPSample*>::const_iterator itSample;
 
-  //count samples near the feature point
-  for (itSample = set.begin(); itSample < set.end(); ++itSample) {
-    if ((*itSample)->isPos) {
+  // Count samples near the feature point
+  for (itSample = set.begin(); itSample < set.end(); ++itSample)
+  {
+    if ((*itSample)->isPos)
+    {
       size++;
     }
   }
   poppClasses[0] = size / static_cast<float>(set.size() - size);
-
-}
-
+};

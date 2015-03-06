@@ -71,7 +71,7 @@ Viewer::init
   m_width        = width;
   m_height       = height;
 
-  cv::namedWindow(m_window_title.c_str(), CV_WINDOW_AUTOSIZE);
+  cv::namedWindow(m_window_title.c_str(), cv::WINDOW_AUTOSIZE);
   cv::moveWindow(m_window_title.c_str(), 0, 0);
 };
 

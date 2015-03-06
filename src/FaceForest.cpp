@@ -1,34 +1,57 @@
-/*
- * face_forest.cpp
- *
- *  Created on: Jul 24, 2012
- *      Author: Matthias Dantone
- *
- */
+/** ****************************************************************************
+ *  @file    FaceForest.cpp
+ *  @brief   Real-time facial feature detection
+ *  @author  Matthias Dantone
+ *  @date    2011/06
+ ******************************************************************************/
 
-#include "face_forest.hpp"
-#include "face_utils.hpp"
-#include "mean_shift.hpp"
+// ----------------------- INCLUDES --------------------------------------------
+#include <FaceForest.hpp>
 #include <boost/filesystem.hpp>
+#include <face_utils.hpp>
+#include <MeanShift.hpp>
 
-using namespace std;
-using namespace cv;
-using namespace boost::filesystem;
+FaceForest::FaceForest
+  (
+  FaceForestOptions option
+  ) :
+    m_ff_options(option)
+{
+  //loading face cascade
+  CV_Assert(load_face_cascade(option.face_detection_option.path_face_cascade));
 
-// STATIC FUNCTIONS
-void FaceForest::detect_face(const cv::Mat& img,
-    CascadeClassifier& face_cascade, FaceDetectionOption option, vector<
-        cv::Rect>& faces) {
+  //loading head pose forest
+  m_hp_forest.load(option.hp_forest_param.treePath,
+      option.hp_forest_param);
+
+  //loading ffd trees
+  num_trees = option.mp_forest_param.nTrees;
+
+  m_mp_forest.setParam(option.mp_forest_param);
+  get_paths_to_trees(option.mp_forest_param.treePath, m_ff_options.mp_tree_paths);
+
+  loading_all_trees(m_ff_options.mp_tree_paths);
+  is_inizialized = true;
+};
+
+void
+FaceForest::detect_face
+  (
+  const cv::Mat &img,
+  cv::CascadeClassifier &face_cascade,
+  FaceDetectionOption option,
+  std::vector<cv::Rect> &faces
+  )
+{
   int flags = 0; //CV_HAAR_SCALE_IMAGE;
-  cv::Size minFeatureSize = cv::Size(option.min_feature_size,
-      option.min_feature_size);
+  cv::Size minFeatureSize = cv::Size(option.min_feature_size, option.min_feature_size);
 
-  //-- Detect faces
-  face_cascade.detectMultiScale(img, faces, option.search_scale_factor,
-      option.min_neighbors, flags, minFeatureSize);
+  // Detect faces
+  face_cascade.detectMultiScale(img, faces, option.search_scale_factor, option.min_neighbors, flags, minFeatureSize);
 
-  //the face detection bboxes are too tight for us.
-  for (unsigned int i = 0; i < faces.size(); i++) {
+  // The face detection bboxes are too tight for us
+  for (unsigned int i = 0; i < faces.size(); i++)
+  {
     int off_set_x = faces[i].width * 0.05;
     int off_set_y = faces[i].width * 0.15;
 
@@ -37,25 +60,34 @@ void FaceForest::detect_face(const cv::Mat& img,
         cv::Rect(0, 0, img.cols, img.rows));
     faces[i] = roi;
   }
-}
+};
 
-void FaceForest::estimate_head_pose(const ImageSample& img_sample,
-    const cv::Rect& face_bbox, const Forest<HeadPoseSample>& forest,
-    HeadPoseEstimatorOption option, float* head_pose, float* head_pose_variance) {
-  // collect leafs
+void
+FaceForest::estimate_head_pose
+  (
+  const ImageSample &img_sample,
+  const cv::Rect &face_bbox,
+  const Forest<HeadPoseSample> &forest,
+  HeadPoseEstimatorOption option,
+  float *head_pose,
+  float *head_pose_variance
+  )
+{
+  // Collect leafs
   std::vector<HeadPoseLeaf*> leafs;
   get_headpose_votes_mt(img_sample, forest, face_bbox, leafs, option.step_size);
 
-  // parse leaf
+  // Parse leaf
   int n = 0;
   float sum = 0;
   float sum_sq = 0;
-  for (unsigned int j = 0; j < leafs.size(); ++j) {
-
-    if (leafs[j]->forgound > option.min_forground_probability) {
-
+  for (unsigned int j = 0; j < leafs.size(); ++j)
+  {
+    if (leafs[j]->forgound > option.min_forground_probability)
+    {
       float m = 0;
-      for (int ii = 0; ii < option.num_head_pose_labels; ii++) {
+      for (int ii = 0; ii < option.num_head_pose_labels; ii++)
+      {
         m += leafs[j]->hist_labels[ii] * ii;
       }
       m /= (leafs[j]->nSamples * leafs[j]->forgound);
@@ -73,16 +105,22 @@ void FaceForest::estimate_head_pose(const ImageSample& img_sample,
 
   *head_pose = mean;
   *head_pose_variance = variance;
-}
+};
 
-void FaceForest::estimate_ffd(const ImageSample& image_sample,
-    const cv::Rect face_bbox, const Forest<MPSample>& mp_forest,
-    MultiPartEstimatorOption option, vector<Point>& ffd_cordinates) {
-
+void
+FaceForest::estimate_ffd
+  (
+  const ImageSample &image_sample,
+  const cv::Rect face_bbox,
+  const Forest<MPSample> &mp_forest,
+  MultiPartEstimatorOption option,
+  std::vector<cv::Point> &ffd_cordinates
+  )
+{
   int num_parts = option.num_parts;
   ffd_cordinates.clear();
   ffd_cordinates.resize(num_parts);
-  vector < vector<Vote> > votes(num_parts);
+  std::vector < std::vector<Vote> > votes(num_parts);
 
   get_ffd_votes_mt(image_sample, mp_forest, face_bbox, votes, option);
 
@@ -93,24 +131,29 @@ void FaceForest::estimate_ffd(const ImageSample& image_sample,
   //	pool.join_all();
 
   MeanShiftOption ms_option;
-  for (int j = 0; j < num_parts; j++) {
+  for (int j = 0; j < num_parts; j++)
     MeanShift::shift(votes[j], ffd_cordinates[j], ms_option);
-  }
 
   //	std::vector<cv::Point> gt;
   //	plot_ffd_votes(image_sample.featureChannels[0], votes,
   //			ffd_cordinates, gt);
+};
 
-}
-
-void FaceForest::show_results(const cv::Mat img, std::vector<Face>& faces, upm::Viewer &viewer) {
+void
+FaceForest::show_results
+  (
+  const cv::Mat img,
+  std::vector<Face> &faces,
+  upm::Viewer &viewer
+  )
+{
   cv::Mat image = img.clone();
 
   for (unsigned int j = 0; j < faces.size(); j++) {
-    for (unsigned int ii = 0; ii < faces[j].ffd_cordinates.size(); ii++) {
+    for (unsigned int ii = 0; ii < faces[j].ffd_cordinates.size(); ii++)
+    {
       int x = faces[j].ffd_cordinates[ii].x + faces[j].bbox.x;
       int y = faces[j].ffd_cordinates[ii].y + faces[j].bbox.y;
-
       viewer.circle(x, y, 3, -1, cv::Scalar(0,255,0));
     }
     cv::Rect bbox = faces[j].bbox;
@@ -135,55 +178,45 @@ void FaceForest::show_results(const cv::Mat img, std::vector<Face>& faces, upm::
     viewer.line(a.x, a.y, b.x, b.y, 2, color);
     viewer.line(c.x, c.y, d.x, d.y, 2, color);
   }
-}
-
-// END STATIC FUNCTIONS
-
-FaceForest::FaceForest(FaceForestOptions option) :
-  option_(option) {
-
-  //loading face cascade
-  CV_Assert(load_face_cascade(option.face_detection_option.path_face_cascade));
-
-  //loading head pose forest
-  con_forest.load(option.head_pose_forest_param.treePath,
-      option.head_pose_forest_param);
-
-  //loading ffd trees
-  num_trees = option.mp_forest_param.nTrees;
-
-  forest.setParam(option.mp_forest_param);
-  get_paths_to_trees(option.mp_forest_param.treePath, option_.mp_tree_paths);
-
-  loading_all_trees(option_.mp_tree_paths);
-  is_inizialized = true;
 };
 
-void FaceForest::analize_image(cv::Mat img, vector<Face>& faces) {
-  CV_Assert( is_inizialized);
+void FaceForest::analize_image
+  (
+  cv::Mat img,
+  std::vector<Face> &faces
+  )
+{
+  CV_Assert(is_inizialized);
 
   //detect the face
-  vector < Rect > faces_bboxes;
-  detect_face(img, face_cascade, option_.face_detection_option, faces_bboxes);
+  std::vector < cv::Rect > faces_bboxes;
+  detect_face(img, m_face_cascade, m_ff_options.face_detection_option, faces_bboxes);
 
-  cout << faces_bboxes.size() << " detected faces." << endl;
+  std::cout << faces_bboxes.size() << " detected faces." << std::endl;
   // for each detected face
   for (unsigned int i = 0; i < faces_bboxes.size(); i++) {
     Face f;
     analize_face(img, faces_bboxes[i], f);
     faces.push_back(f);
   }
-}
+};
 
-void FaceForest::analize_face(const cv::Mat img, cv::Rect face_bbox,
-    Face& result_face, bool normalize) {
-  CV_Assert( is_inizialized);
+void
+FaceForest::analize_face
+  (
+  const cv::Mat img,
+  cv::Rect face_bbox,
+  Face &result_face,
+  bool normalize
+  )
+{
+  CV_Assert(is_inizialized);
   CV_Assert(img.type() == CV_8UC1);
   result_face.bbox = face_bbox;
 
-  ForestParam param = option_.head_pose_forest_param;
-  // rescale and extract face
-  Mat face;
+  ForestParam param = m_ff_options.hp_forest_param;
+  // Rescale and extract face
+  cv::Mat face;
   float scale = static_cast<float> (param.faceSize) / face_bbox.width;
   cv::resize(img(face_bbox), face, cv::Size(face_bbox.width * scale,
       face_bbox.height * scale), 0, 0);
@@ -201,12 +234,12 @@ void FaceForest::analize_face(const cv::Mat img, cv::Rect face_bbox,
   int hist_size = 5;
   float headpose = 0;
   float variance = 0;
-  estimate_head_pose(sample, Rect(0, 0, face.cols, face.rows), con_forest,
-      option_.pose_estimator_option, &headpose, &variance);
+  estimate_head_pose(sample, cv::Rect(0, 0, face.cols, face.rows), m_hp_forest,
+                     m_ff_options.pose_estimator_option, &headpose, &variance);
 
   result_face.headpose = headpose;
   // compute area under curve
-  vector<float> poseT(hist_size + 1);
+  std::vector<float> poseT(hist_size + 1);
   poseT[0] = -2.5;
   poseT[1] = -0.35;
   poseT[2] = -0.20;
@@ -230,49 +263,60 @@ void FaceForest::analize_face(const cv::Mat img, cv::Rect face_bbox,
   timer.restart();
 
   //add new tree based on the estimated heas_pose
-  CV_Assert(trees.size() == pose_freq.size());
-  CV_Assert(static_cast<int> (trees.size()) == hist_size);
+  CV_Assert(m_trees.size() == pose_freq.size());
+  CV_Assert(static_cast<int> (m_trees.size()) == hist_size);
 
-  forest.trees.clear();
+  m_mp_forest.cleanForest();
 
-  for (unsigned int i = 0; i < trees.size(); i++) {
+  for (unsigned int i = 0; i < m_trees.size(); i++) {
     int n_trees = pose_freq[i] * num_trees;
     for (int j = 0; j < n_trees; j++) {
-      forest.addTree(trees[i][j]);
+      m_mp_forest.addTree(m_trees[i][j]);
     }
   }
   // correcting rounding errors
-  for (int i = static_cast<int> (forest.trees.size()); i < num_trees; i++) {
-    forest.addTree(trees[dominant_headpose][i]);
+  for (int i = m_mp_forest.numberOfTrees(); i < num_trees; i++) {
+    m_mp_forest.addTree(m_trees[dominant_headpose][i]);
   }
 
   //estimate ffd
-  estimate_ffd(sample, Rect(0, 0, face.cols, face.rows), forest,
-      option_.multi_part_option, result_face. ffd_cordinates);
+  estimate_ffd(sample, cv::Rect(0, 0, face.cols, face.rows), m_mp_forest,
+               m_ff_options.multi_part_option, result_face. ffd_cordinates);
 
   //rescale final results
   for (unsigned int i = 0; i < result_face.ffd_cordinates.size(); i++) {
     result_face.ffd_cordinates[i].x /= scale;
     result_face.ffd_cordinates[i].y /= scale;
   }
-}
+};
 
-void FaceForest::get_paths_to_trees(std::string url,
-    std::vector<std::string>& dirs) {
-  path dir_path(url);
-  directory_iterator end_it;
-  for (directory_iterator it(dir_path); it != end_it; ++it) {
+void
+FaceForest::get_paths_to_trees
+  (
+  std::string url,
+  std::vector<std::string> &dirs
+  )
+{
+  boost::filesystem::path dir_path(url);
+  boost::filesystem::directory_iterator end_it;
+  for (boost::filesystem::directory_iterator it(dir_path); it != end_it; ++it) {
     if (is_directory(it->status())) {
       dirs.push_back(it->path().string());
     }
   }
   sort(dirs.begin(), dirs.end());
-  cout << dirs.size() << " directories found" << endl;
-}
+  std::cout << dirs.size() << " directories found" << std::endl;
+};
 
-void FaceForest::loading_all_trees(vector<string> urls) {
-  for (unsigned int i = 0; i < urls.size(); i++) {
-    cout << urls[i] << endl;
+void
+FaceForest::loading_all_trees
+  (
+  std::vector<std::string> urls
+  )
+{
+  for (unsigned int i = 0; i < urls.size(); i++)
+  {
+    std::cout << urls[i] << std::endl;
     std::vector<Tree<MPSample>*> all_trees;
     for (int j = 0; j < num_trees; j++) {
 
@@ -282,7 +326,7 @@ void FaceForest::loading_all_trees(vector<string> urls) {
       std::string tree_path = buffer;
       Forest<MPSample>::load_tree(tree_path, all_trees);
     }
-    cout << all_trees.size() << " trees loaded" << endl;
-    trees.push_back(all_trees);
+    std::cout << all_trees.size() << " trees loaded" << std::endl;
+    m_trees.push_back(all_trees);
   }
-}
+};

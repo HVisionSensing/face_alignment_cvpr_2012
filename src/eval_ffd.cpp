@@ -5,16 +5,17 @@
  *      Author: Matthias Dantone
  */
 
-#include "forest.hpp"
-#include "multi_part_sample.hpp"
-#include "head_pose_sample.hpp"
 #include "face_utils.hpp"
 #include <istream>
 #include <opencv2/opencv.hpp>
 #include <boost/progress.hpp>
-#include "face_forest.hpp"
-#include "feature_channel_factory.hpp"
-#include "timing.hpp"
+
+#include "../include/FaceForest.hpp"
+#include "../include/FeatureChannelFactory.hpp"
+#include "../include/Forest.hpp"
+#include "../include/HeadPoseSample.hpp"
+#include "../include/MPSample.hpp"
+#include "../include/Timing.hpp"
 using namespace std;
 using namespace cv;
 

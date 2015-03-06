@@ -28,27 +28,28 @@ INCLUDE_DIRECTORIES(
 #-- Executable
 ADD_EXECUTABLE(test_cvpr_2012
     ${CMAKE_SOURCE_DIR}/include/trace.hpp
-    ${CMAKE_SOURCE_DIR}/include/forest.hpp
-    ${CMAKE_SOURCE_DIR}/include/mean_shift.hpp
-    ${CMAKE_SOURCE_DIR}/include/opencv_serialization.hpp
-    ${CMAKE_SOURCE_DIR}/include/face_forest.hpp
-    ${CMAKE_SOURCE_DIR}/src/face_forest.cpp
-    ${CMAKE_SOURCE_DIR}/include/head_pose_sample.hpp
-    ${CMAKE_SOURCE_DIR}/src/head_pose_sample.cpp
-    ${CMAKE_SOURCE_DIR}/include/timing.hpp
-    ${CMAKE_SOURCE_DIR}/include/tree_node.hpp
-    ${CMAKE_SOURCE_DIR}/include/split_gen.hpp
-    ${CMAKE_SOURCE_DIR}/include/tree.hpp
-    ${CMAKE_SOURCE_DIR}/include/multi_part_sample.hpp
-    ${CMAKE_SOURCE_DIR}/src/multi_part_sample.cpp
-    ${CMAKE_SOURCE_DIR}/include/thread_pool.hpp
-    ${CMAKE_SOURCE_DIR}/include/feature_channel_factory.hpp
-    ${CMAKE_SOURCE_DIR}/include/image_sample.hpp
-    ${CMAKE_SOURCE_DIR}/src/image_sample.cpp
-    ${CMAKE_SOURCE_DIR}/include/face_utils.hpp
-    ${CMAKE_SOURCE_DIR}/src/face_utils.cpp
+    ${CMAKE_SOURCE_DIR}/include/ThreadPool.hpp
+    ${CMAKE_SOURCE_DIR}/include/Timing.hpp
     ${CMAKE_SOURCE_DIR}/include/Viewer.hpp
     ${CMAKE_SOURCE_DIR}/src/Viewer.cpp
+    ${CMAKE_SOURCE_DIR}/include/TreeNode.hpp
+    ${CMAKE_SOURCE_DIR}/include/SplitGen.hpp
+    ${CMAKE_SOURCE_DIR}/include/Tree.hpp
+    ${CMAKE_SOURCE_DIR}/include/Forest.hpp
+    ${CMAKE_SOURCE_DIR}/include/FeatureChannelFactory.hpp
+    ${CMAKE_SOURCE_DIR}/include/ThresholdSplit.hpp
+    ${CMAKE_SOURCE_DIR}/include/opencv_serialization.hpp
+    ${CMAKE_SOURCE_DIR}/include/ImageSample.hpp
+    ${CMAKE_SOURCE_DIR}/src/ImageSample.cpp
+    ${CMAKE_SOURCE_DIR}/include/HeadPoseSample.hpp
+    ${CMAKE_SOURCE_DIR}/src/HeadPoseSample.cpp
+    ${CMAKE_SOURCE_DIR}/include/MPSample.hpp
+    ${CMAKE_SOURCE_DIR}/src/MPSample.cpp
+    ${CMAKE_SOURCE_DIR}/include/MeanShift.hpp
+    ${CMAKE_SOURCE_DIR}/include/FaceForest.hpp
+    ${CMAKE_SOURCE_DIR}/src/FaceForest.cpp
+    ${CMAKE_SOURCE_DIR}/include/face_utils.hpp
+    ${CMAKE_SOURCE_DIR}/src/face_utils.cpp
     
     ${CMAKE_SOURCE_DIR}/src/test_cvpr_2012.cpp
     #${CMAKE_SOURCE_DIR}/src/demo.cpp

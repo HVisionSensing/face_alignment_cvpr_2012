@@ -10,10 +10,10 @@
 // ----------------------- INCLUDES --------------------------------------------
 #include <trace.hpp>
 #include <Viewer.hpp>
-#include <tree_node.hpp>
-#include <face_forest.hpp>
+#include <TreeNode.hpp>
+#include <FaceForest.hpp>
 #include <face_utils.hpp>
-
+#include <opencv/highgui.h>
 #include <opencv2/highgui/highgui.hpp>
 #include <boost/filesystem.hpp>
 
@@ -37,7 +37,7 @@ processFrame
   std::vector<Face> &faces
   )
 {
-  double ticks = static_cast<double>(cvGetTickCount());
+  double ticks = static_cast<double>(cv::getTickCount());
 
   // Convert to gray scale
   cv::Mat frame_gray;
@@ -45,7 +45,7 @@ processFrame
 
   ff.analize_image(frame_gray, faces);
 
-  ticks = static_cast<double>(cvGetTickCount()) - ticks;
+  ticks = static_cast<double>(cv::getTickCount()) - ticks;
   return ticks;
 };
 
@@ -154,7 +154,7 @@ main
 
   FaceForestOptions ff_options;
   ff_options.face_detection_option.path_face_cascade = "data/haarcascade_frontalface_alt.xml";
-  ff_options.head_pose_forest_param = hp_param;
+  ff_options.hp_forest_param = hp_param;
   ff_options.mp_forest_param = mp_param;
 
   FaceForest ff(ff_options);

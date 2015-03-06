@@ -17,7 +17,7 @@
 #define PRINT(...) std::cout << __VA_ARGS__ << std::endl;
 #define ERROR(...) std::cerr << __VA_ARGS__ << std::endl;
 
-#ifdef _DEBUG
+#ifdef DEBUG
   #define TRACE(...) std::cout << __VA_ARGS__ << std::endl;
   #define TRACE_INFO(...) std::cout << __FILE__ << "(" << __LINE__ << "):" << __VA_ARGS__ << std::endl;
 #else

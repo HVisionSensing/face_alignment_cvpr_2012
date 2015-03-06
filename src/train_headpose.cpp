@@ -5,13 +5,13 @@
  *      Author: Matthias Dantone
  */
 
-#include "forest.hpp"
-#include "multi_part_sample.hpp"
-#include "head_pose_sample.hpp"
 #include "face_utils.hpp"
 #include <istream>
 #include <opencv2/opencv.hpp>
 #include <boost/progress.hpp>
+#include "../include/Forest.hpp"
+#include "../include/HeadPoseSample.hpp"
+#include "../include/MPSample.hpp"
 
 using namespace std;
 int main(int argc, char** argv) {
